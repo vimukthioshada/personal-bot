@@ -12,7 +12,7 @@ const uploader = "🎬 TC TEAM MOVIE-DL 🎬";
 
 // YTS.mx Search Command (Button-less, Text-based)
 cmd({
-    pattern: "ytsmx",
+    pattern: "ytsm",
     react: '🔎',
     category: "search",
     desc: "YTS.mx movie searcher",
@@ -66,7 +66,7 @@ async (conn, m, mek, { from, q, reply }) => {
 
 // YTS.mx Search Command (Button-less, Text-based, Public)
 cmd({
-    pattern: "ytsm",
+    pattern: "ytsm1",
     react: '📑',
     category: "search",
     desc: "YTS.mx movie downloader",
