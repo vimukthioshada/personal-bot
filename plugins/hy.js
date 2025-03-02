@@ -61,7 +61,7 @@ async function clearSeedrCache() {
 
 // YTS.mx Search Command
 cmd({
-    pattern: "ytsmx",
+    pattern: "ytm",
     alias: ["mv4", "yts"],
     react: "🎥",
     desc: "Download movie for yts.mx",
