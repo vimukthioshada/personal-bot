@@ -3,7 +3,7 @@
 const axios = require('axios');
 const config = require('../config');
 const { cmd, commands } = require('../command');
-const { getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson, fetchApi } = require('../lib/functions');
+const { getBuffer, getGroupAdmins, getRandom, h2k, isUrl, Json, runtime, sleep, fetchJson } = require('../lib/functions'); // Removed fetchApi
 const os = require('os');
 const fs = require('fs-extra');
 
@@ -31,17 +31,11 @@ const apilink = "https://www.dark-yasiya-api.site";
 async function fetchWithRetry(url, retries = 3, delay = 1000) {
     for (let i = 0; i < retries; i++) {
         try {
-            const response = await fetchApi(url, { timeout: 10000 }); // 10-second timeout
+            const response = await fetchJson(url, { timeout: 10000 }); // Use fetchJson instead of fetchApi
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                return await response.json();
-            } else {
-                const text = await response.text();
-                throw new Error(`Invalid JSON response: ${text.substring(0, 50)}...`);
-            }
+            return response;
         } catch (e) {
             if (i === retries - 1) throw e;
             await new Promise(resolve => setTimeout(resolve, delay));
@@ -61,7 +55,7 @@ async function clearSeedrCache() {
 
 // YTS.mx Search Command
 cmd({
-    pattern: "ytm",
+    pattern: "ytsmx",
     alias: ["mv4", "yts"],
     react: "🎥",
     desc: "Download movie for yts.mx",
