@@ -187,11 +187,21 @@ cmd({
 },
 async (conn, mek, m, { from, l, prefix, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
     try {
-        if (!q || !q.startsWith('magnet:')) return reply('❌ *Invalid magnet link provided!*');
+        if (!q || !q.startsWith('magnet:')) return reply('❌ *Invalid magnet link format! Please provide a valid magnet link starting with "magnet:" and including "xt=urn:btih:" and "dn=".*');
+
+        // Validate magnet link format
+        function isValidMagnetLink(magnet) {
+            if (!magnet || !magnet.startsWith('magnet:')) return false;
+            const hasXt = magnet.includes('xt=urn:btih:');
+            const hasDn = magnet.includes('dn=');
+            return hasXt && hasDn;
+        }
+
+        if (!isValidMagnetLink(q)) return reply('❌ *Invalid magnet link format! Please ensure the magnet link includes "xt=urn:btih:" and "dn=".*');
 
         const Seedr = require("seedr");
         const seedr = new Seedr();
-      await seedr.login("ovimukthi256@gmail.com", "Oshada2005@");
+          await seedr.login("ovimukthi256@gmail.com", "Oshada2005@");
 
         const ad_mg = await conn.sendMessage(from, { text: 'ᴜᴘʟᴏᴀᴅɪɴɢ magnet file...📥' }, { quoted: mek });
         const magnet = await seedr.addMagnet(q);
