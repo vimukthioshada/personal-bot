@@ -12,7 +12,7 @@ const uploader = "🎬 TC TEAM MOVIE-DL 🎬";
 
 // YTS.mx Search Command (Button-less, Text-based)
 cmd({
-    pattern: "ytsm",
+    pattern: "ytsmx",
     react: '🔎',
     category: "search",
     desc: "YTS.mx movie searcher",
@@ -66,7 +66,7 @@ async (conn, m, mek, { from, q, reply }) => {
 
 // YTS.mx Search Command (Button-less, Text-based, Public)
 cmd({
-    pattern: "ytsmx",
+    pattern: "ytsm",
     react: '📑',
     category: "search",
     desc: "YTS.mx movie downloader",
@@ -178,7 +178,7 @@ async (conn, m, mek, { from, q, reply, prefix }) => {
     }
 });
 
-// YTS.mx Direct Download Command (Seedr Integration, Button-less, Public)
+// YTS.mx Direct Download Command (Seedr Integration, Button-less, Public, Fixed)
 cmd({
     pattern: "ytmxdl",
     react: '⬆',
@@ -187,6 +187,8 @@ cmd({
 },
 async (conn, mek, m, { from, l, prefix, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
     try {
+        if (!q || !q.startsWith('magnet:')) return reply('❌ *Invalid magnet link provided!*');
+
         const Seedr = require("seedr");
         const seedr = new Seedr();
         await seedr.login("ovimukthi256@gmail.com", "Oshada2005@");
@@ -200,7 +202,7 @@ async (conn, mek, m, { from, l, prefix, quoted, body, isCmd, command, args, q, i
             "《 ███████▒▒▒▒▒》50%",
             "《 ██████████▒▒》80%",
             "《 ████████████》100%",
-            "ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ ᴜᴘʟᴏᴀᴅᴇᴅ ᴍᴀɢɴᴇᴛ ꜰɪʟᴇ ✅..."
+            "ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ ᴜᴘʟᴏᴀᴅᴅ ᴍᴀɢɴᴇᴛ ꜰɪʟᴇ ✅..."
         ];
         let { key } = await conn.sendMessage(from, { text: 'ꜱᴜᴄᴄᴇꜱꜰᴜʟʟʏ ᴜᴘʟᴏᴀᴅᴅ ᴍᴀɢɴᴇᴛ ꜰɪʟᴇ ✅...', edit: ad_mg.key }, { quoted: mek });
 
@@ -211,17 +213,36 @@ async (conn, mek, m, { from, l, prefix, quoted, body, isCmd, command, args, q, i
 
         if (magnet.code === 400 || magnet.result !== true) {
             console.log("Error adding magnet " + JSON.stringify(magnet, null, 2));
-            throw new Error("Failed to add magnet link");
+            throw new Error("Failed to add magnet link: " + (magnet.error || "Invalid magnet link"));
         }
 
         var contents = [];
+        const maxAttempts = 10; // Limit attempts to prevent infinite loop
+        let attempts = 0;
+
         do {
             contents = await seedr.getVideos();
-            await sleep(2000); // Add delay to prevent rate limiting
+            attempts++;
+            if (contents.length === 0 && attempts < maxAttempts) {
+                await sleep(3000); // Increase delay to 3 seconds
+                continue;
+            } else if (contents.length === 0) {
+                throw new Error("No video content found after maximum attempts");
+            }
         } while (contents.length === 0);
+
+        // Validate contents structure
+        if (!Array.isArray(contents) || !contents[0] || !contents[0][0] || !contents[0][0].id) {
+            console.log("Seedr Contents:", JSON.stringify(contents, null, 2));
+            throw new Error("Invalid video content structure from Seedr API");
+        }
 
         var file = await seedr.getFile(contents[0][0].id);
         var folder_id = contents[0][0].fid;
+
+        if (!file || !file.url) {
+            throw new Error("Failed to retrieve file URL from Seedr");
+        }
 
         const link = file.url;
         await conn.sendMessage(from, {
