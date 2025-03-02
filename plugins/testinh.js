@@ -179,6 +179,7 @@ async (conn, m, mek, { from, q, reply, prefix }) => {
 });
 
 // YTS.mx Direct Download Command (Seedr Integration, Button-less, Public, Fixed)
+// YTS.mx Direct Download Command (Updated)
 cmd({
     pattern: "downloadyt",
     react: '⬆',
@@ -201,7 +202,7 @@ async (conn, mek, m, { from, l, prefix, quoted, body, isCmd, command, args, q, i
 
         const Seedr = require("seedr");
         const seedr = new Seedr();
-          await seedr.login("ovimukthi256@gmail.com", "Oshada2005@");
+         await seedr.login("ovimukthi256@gmail.com", "Oshada2005@");
 
         const ad_mg = await conn.sendMessage(from, { text: 'ᴜᴘʟᴏᴀᴅɪɴɢ magnet file...📥' }, { quoted: mek });
         const magnet = await seedr.addMagnet(q);
@@ -212,9 +213,9 @@ async (conn, mek, m, { from, l, prefix, quoted, body, isCmd, command, args, q, i
             "《 ███████▒▒▒▒▒》50%",
             "《 ██████████▒▒》80%",
             "《 ████████████》100%",
-            "ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ ᴜᴘʟᴏᴀᴅᴅ ᴍᴀɢɴᴇᴛ ꜰɪʟᴇ ✅..."
+            "ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ ᴜᴘʟᴏᴀᴅᴇᴅ ᴍᴀɢɴᴇᴛ ꜰɪʟᴇ ✅..."
         ];
-        let { key } = await conn.sendMessage(from, { text: 'ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ ᴜᴘʟᴏᴀᴅᴅ ᴍᴀɢɴᴇᴛ ꜰɪʟᴇ ✅...', edit: ad_mg.key }, { quoted: mek });
+        let { key } = await conn.sendMessage(from, { text: 'ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ ᴜᴘʟᴏᴀᴅᴇᴅ ᴍᴀɢɴᴇᴛ ꜰɪʟᴇ ✅...', edit: ad_mg.key }, { quoted: mek });
 
         for (let i = 0; i < vajiralod.length; i++) {
             await conn.sendMessage(from, { text: vajiralod[i], edit: key });
@@ -223,18 +224,22 @@ async (conn, mek, m, { from, l, prefix, quoted, body, isCmd, command, args, q, i
 
         if (magnet.code === 400 || magnet.result !== true) {
             console.log("Error adding magnet " + JSON.stringify(magnet, null, 2));
+            if (magnet.result === "not_enough_space_added_to_wishlist") {
+                await conn.sendMessage(from, { delete: ad_mg.key });
+                return reply("❌ *Seedr.cc storage is full or exceeds limits (2GB max for free plan). Please delete old files, free up space, or upgrade your plan.*");
+            }
             throw new Error("Failed to add magnet link: " + (magnet.error || "Invalid magnet link"));
         }
 
         var contents = [];
-        const maxAttempts = 10; // Limit attempts to prevent infinite loop
+        const maxAttempts = 15; // Increased attempts to prevent infinite loop
         let attempts = 0;
 
         do {
             contents = await seedr.getVideos();
             attempts++;
             if (contents.length === 0 && attempts < maxAttempts) {
-                await sleep(3000); // Increase delay to 3 seconds
+                await sleep(5000); // Increase delay to 5 seconds for stability
                 continue;
             } else if (contents.length === 0) {
                 throw new Error("No video content found after maximum attempts");
@@ -244,15 +249,18 @@ async (conn, mek, m, { from, l, prefix, quoted, body, isCmd, command, args, q, i
         // Debug Seedr API response
         console.log("Seedr Contents:", JSON.stringify(contents, null, 2));
 
-        // Handle dynamic structure
+        // Handle dynamic structure with more robust validation
         let videoItem = null;
         if (Array.isArray(contents) && contents.length > 0) {
             if (Array.isArray(contents[0]) && contents[0].length > 0) {
                 // If contents is an array of arrays (original structure)
                 videoItem = contents[0][0];
-            } else if (typeof contents[0] === 'object' && contents[0].id) {
+            } else if (Array.isArray(contents) && contents.some(item => typeof item === 'object' && item.id)) {
                 // If contents is a single array of objects
-                videoItem = contents[0];
+                videoItem = contents.find(item => item.id);
+            } else if (typeof contents === 'object' && contents.id) {
+                // If contents is a single object
+                videoItem = contents;
             }
         }
 
