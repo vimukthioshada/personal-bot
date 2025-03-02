@@ -10,12 +10,12 @@ const pk2 = ")`";
 const oce = "`";
 const uploader = "🎬 TC TEAM MOVIE-DL 🎬";
 
-// YTS.mx Search Command (Button-less, Text-based)
+// YTS.mx Search Command (Button-less, Text-based, Public)
 cmd({
-    pattern: "ytsm",
+    pattern: "searchyts",
     react: '🔎',
     category: "search",
-    desc: "YTS.mx movie searcher",
+    desc: "Search movies on YTS.mx",
     filename: __filename
 },
 async (conn, m, mek, { from, q, reply }) => {
@@ -41,7 +41,7 @@ async (conn, m, mek, { from, q, reply }) => {
 
         if (result.length < 1) return await conn.sendMessage(from, { text: 'Error !' }, { quoted: mek });
 
-        let textw = `🔎 𝗧.𝗖 𝗠𝗢𝗜𝗩𝗘 𝗦𝗘𝗔𝗥𝗖𝗛 \n\n`;
+        let textw = `🔎 𝗧.𝗖 𝗠𝗢𝗩𝗜𝗘 𝗦𝗘𝗔𝗥𝗖𝗛 (𝗬𝗧𝗦.𝗠𝗫) \n\n`;
         let numrep = [];
         for (let i = 0; i < result.length; i++) {
             textw += `*${i + 1} ||* *📃 Title:* ${result[i].title}\n`;
@@ -50,7 +50,7 @@ async (conn, m, mek, { from, q, reply }) => {
             textw += `    *💫 Rating:* ${result[i].rating}\n`;
             textw += `    *📅 Date:* ${result[i].year}\n`;
             textw += `    *📎 Link:* ${result[i].link}\n\n--------------------------------------------\n\n`;
-            numrep.push(`.ytmx ${result[i].link}`);
+            numrep.push(`.detailyt ${result[i].link}`);
         }
 
         const mass = await conn.sendMessage(from, { text: `${textw}\n${config.FOOTER}` }, { quoted: mek });
@@ -59,17 +59,17 @@ async (conn, m, mek, { from, q, reply }) => {
 
         await conn.sendMessage(from, { react: { text: `✅`, key: mek.key } });
     } catch (e) {
-        console.log(`Error in ytsmxs command: ${e.message}`);
+        console.log(`Error in searchyts command: ${e.message}`);
         reply(`❌ *Error Occurred !!*\n\n${e.message || e}`);
     }
 });
 
-// YTS.mx Search Command (Button-less, Text-based, Public)
+// YTS.mx List Command (Button-less, Text-based, Public)
 cmd({
-    pattern: "ytsm1",
+    pattern: "listyts",
     react: '📑',
     category: "search",
-    desc: "YTS.mx movie downloader",
+    desc: "List movies on YTS.mx",
     filename: __filename
 },
 async (conn, m, mek, { from, q, reply }) => {
@@ -95,14 +95,14 @@ async (conn, m, mek, { from, q, reply }) => {
 
         if (result.length < 1) return await conn.sendMessage(from, { text: 'Error !' }, { quoted: mek });
 
-        let textw = `📑 𝗧.𝗖 𝗬𝗧𝗦.𝗠𝗫 𝗦𝗘𝗔𝗥𝗖𝗛 \n\n`;
+        let textw = `📑 𝗧.𝗖 𝗬𝗧𝗦.𝗠𝗫 𝗠𝗢𝗩𝗜𝗘 𝗟𝗜𝗦𝗧 \n\n`;
         let numrep = [];
         for (let i = 0; i < Math.min(result.length, 10); i++) { // Limit to 10 results
             textw += `*${i + 1} ||* *📃 Title:* ${result[i].title}\n`;
             textw += `    *📅 Year:* ${result[i].year}\n`;
             textw += `    *💫 Rating:* ${result[i].rating}\n`;
             textw += `    *📎 Link:* ${result[i].link}\n\n--------------------------------------------\n\n`;
-            numrep.push(`.ytmx ${result[i].link}`);
+            numrep.push(`.detailyt ${result[i].link}`);
         }
 
         const mass = await conn.sendMessage(from, { text: `${textw}\n${config.FOOTER}` }, { quoted: mek });
@@ -111,17 +111,17 @@ async (conn, m, mek, { from, q, reply }) => {
 
         await conn.sendMessage(from, { react: { text: `✅`, key: mek.key } });
     } catch (e) {
-        console.log(`Error in ytsmx command: ${e.message}`);
+        console.log(`Error in listyts command: ${e.message}`);
         reply(`❌ *Error Occurred !!*\n\n${e.message || e}`);
     }
 });
 
-// YTS.mx Movie Details and Download Command (Button-less, Public)
+// YTS.mx Movie Details Command (Button-less, Public)
 cmd({
-    pattern: "ytmx",
+    pattern: "detailyt",
     react: '📑',
     category: "search",
-    desc: "YTS.mx movie downloader",
+    desc: "Get YTS.mx movie details",
     filename: __filename
 },
 async (conn, m, mek, { from, q, reply, prefix }) => {
@@ -150,7 +150,7 @@ async (conn, m, mek, { from, q, reply, prefix }) => {
 
         if (download_links.length < 1) return await conn.sendMessage(from, { text: `🚫 Download Link Not Found: *${q}*` }, { quoted: mek });
 
-        let textw = `📃 𝗧𝗖 𝗧𝗘𝗔𝗠 𝗬𝗧𝗦𝗠𝗫 𝗠𝗗𝗟 🎬\n\n📑 *Title:* ${title}\n🧬 *Year:* ${year}\n🫧 *Language:* ${language}\n\n`;
+        let textw = `📃 𝗧𝗖 𝗧𝗘𝗔𝗠 𝗬𝗧𝗦𝗠𝗫 𝗠𝗢𝗩𝗜𝗘 𝗗𝗘𝗧𝗔𝗜𝗟𝗦 🎬\n\n📑 *Title:* ${title}\n🧬 *Year:* ${year}\n🫧 *Language:* ${language}\n\n`;
         let numrep = [];
 
         textw += `*1 ||* 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃 𝐓𝐎𝐑𝐑𝐄𝐍𝐓 📂\n    *Link:* ${download_links[0].torrent_file}\n\n`;
@@ -160,7 +160,7 @@ async (conn, m, mek, { from, q, reply, prefix }) => {
             textw += `    *Type:* ${download_links[i].type}\n`;
             textw += `    *Size:* ${download_links[i].size}\n`;
             textw += `    *Magnet Link:* ${download_links[i].magnet}\n\n--------------------------------------------\n\n`;
-            numrep.push(`${prefix}ytmxdl ${download_links[i].magnet}`);
+            numrep.push(`${prefix}downloadyt ${download_links[i].magnet}`);
         }
 
         const mass = await conn.sendMessage(from, {
@@ -173,14 +173,14 @@ async (conn, m, mek, { from, q, reply, prefix }) => {
 
         await conn.sendMessage(from, { react: { text: `✅`, key: mek.key } });
     } catch (e) {
-        console.log(`Error in ytmx command: ${e.message}`);
+        console.log(`Error in detailyt command: ${e.message}`);
         reply(`❌ *Error Occurred !!*\n\n${e.message || e}`);
     }
 });
 
 // YTS.mx Direct Download Command (Seedr Integration, Button-less, Public, Fixed)
 cmd({
-    pattern: "ytmxdl",
+    pattern: "downloadyt",
     react: '⬆',
     dontAddCommandList: true,
     filename: __filename
@@ -191,7 +191,7 @@ async (conn, mek, m, { from, l, prefix, quoted, body, isCmd, command, args, q, i
 
         const Seedr = require("seedr");
         const seedr = new Seedr();
-        await seedr.login("ovimukthi256@gmail.com", "Oshada2005@");
+      await seedr.login("ovimukthi256@gmail.com", "Oshada2005@");
 
         const ad_mg = await conn.sendMessage(from, { text: 'ᴜᴘʟᴏᴀᴅɪɴɢ magnet file...📥' }, { quoted: mek });
         const magnet = await seedr.addMagnet(q);
@@ -204,7 +204,7 @@ async (conn, mek, m, { from, l, prefix, quoted, body, isCmd, command, args, q, i
             "《 ████████████》100%",
             "ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ ᴜᴘʟᴏᴀᴅᴅ ᴍᴀɢɴᴇᴛ ꜰɪʟᴇ ✅..."
         ];
-        let { key } = await conn.sendMessage(from, { text: 'ꜱᴜᴄᴄᴇꜱꜰᴜʟʟʏ ᴜᴘʟᴏᴀᴅᴅ ᴍᴀɢɴᴇᴛ ꜰɪʟᴇ ✅...', edit: ad_mg.key }, { quoted: mek });
+        let { key } = await conn.sendMessage(from, { text: 'ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ ᴜᴘʟᴏᴀᴅᴅ ᴍᴀɢɴᴇᴛ ꜰɪʟᴇ ✅...', edit: ad_mg.key }, { quoted: mek });
 
         for (let i = 0; i < vajiralod.length; i++) {
             await conn.sendMessage(from, { text: vajiralod[i], edit: key });
@@ -231,14 +231,27 @@ async (conn, mek, m, { from, l, prefix, quoted, body, isCmd, command, args, q, i
             }
         } while (contents.length === 0);
 
-        // Validate contents structure
-        if (!Array.isArray(contents) || !contents[0] || !contents[0][0] || !contents[0][0].id) {
-            console.log("Seedr Contents:", JSON.stringify(contents, null, 2));
+        // Debug Seedr API response
+        console.log("Seedr Contents:", JSON.stringify(contents, null, 2));
+
+        // Handle dynamic structure
+        let videoItem = null;
+        if (Array.isArray(contents) && contents.length > 0) {
+            if (Array.isArray(contents[0]) && contents[0].length > 0) {
+                // If contents is an array of arrays (original structure)
+                videoItem = contents[0][0];
+            } else if (typeof contents[0] === 'object' && contents[0].id) {
+                // If contents is a single array of objects
+                videoItem = contents[0];
+            }
+        }
+
+        if (!videoItem || !videoItem.id) {
             throw new Error("Invalid video content structure from Seedr API");
         }
 
-        var file = await seedr.getFile(contents[0][0].id);
-        var folder_id = contents[0][0].fid;
+        var file = await seedr.getFile(videoItem.id);
+        var folder_id = videoItem.fid;
 
         if (!file || !file.url) {
             throw new Error("Failed to retrieve file URL from Seedr");
@@ -256,7 +269,7 @@ async (conn, mek, m, { from, l, prefix, quoted, body, isCmd, command, args, q, i
         await conn.sendMessage(from, { text: 'Movie send Successfully ✔' }, { quoted: mek });
     } catch (e) {
         await conn.sendMessage(from, { react: { text: '❌', key: mek.key } });
-        console.log(`Error in ytmxdl command: ${e.message}`);
+        console.log(`Error in downloadyt command: ${e.message}`);
         reply(`❌ *Error Occurred !!*\n\n${e.message || e}`);
     }
 });
