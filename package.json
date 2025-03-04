@@ -21,6 +21,7 @@
     "@dark-yasiya/nexara": "1.0.0",
     "async-g-i-s": "^1.4.0",
     "mongoose": "8.5.3",
+    "darksadasyt-anime": "1.0.0",
     "mongodb": "^6.5.0",
     "axios": "^1.2.5",
     "cheerio": "1.0.0",
