@@ -444,7 +444,9 @@ async function connectToWA() {
     });
 }
 
-app.get("/", (req, res) => {
-    res.send("WOLF IS ON YOUR WAY");
-});
-app.listen(port, () => console.log(`Server listening on port http://localhost:${port}`));
+
+app.get("/", (req, res) => res.sendFile(require('path').join(__dirname, "./index.html")));
+app.listen(port, () => console.log(`✅ Bhashi - Server Running...`));
+setTimeout(() => {
+    connectToWA()
+}, 4000);
