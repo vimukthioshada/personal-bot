@@ -7,7 +7,7 @@ function convertToBool(text, fault = 'true') {
 module.exports = {
 ALIVE_IMG : process.env.ALIVE_IMG || "https://pomf2.lain.la/f/id9p5zqm.jpg",
 AUTO_READ_STATUS: process.env.AUTO_READ_STATUS || "true",
-    SESSION_ID: process.env.SESSION_ID || "F7l2AIKB#VgtD6ourI0HM06LDx9lWG3b2moviDWK1I_SIhmOfHLo",
+    SESSION_ID: process.env.SESSION_ID || "3IIDzKCL#Lr1PgfeCejP6kyP6IIbegkI3YAPDVp4qdGwEpolMcRg",
     OWNER_NUMBER: process.env.OWNER_NUMBER || "94755773910",
     AUTO_VIEW_STATUS: process.env.AUTO_VIEW_STATUS || "true",
     MODE: process.env.MODE || "public",
