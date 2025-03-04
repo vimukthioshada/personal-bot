@@ -30,16 +30,31 @@ const mode = config.MODE || "public";
 const ownerNumber = '94755773910'; // [config.OWNER_NUMBER];
 const { mongodb_connection_start, start_numrep_process, upload_to_mongodb, get_data_from_mongodb, storenumrepdata, getstorednumrep } = require('./lib/nonbutton');
 
-// Log loaded modules for debugging
-console.log('Loaded modules:', { makeWASocket, useMultiFileAuthState, NodeCache, fs, P, config, qrcode, util, axios, File });
+//===================SESSION-AUTH============================
+if (!fs.existsSync(__dirname + '/auth_info_baileys/creds.json')) {
+    if (!config.SESSION_ID) return console.log('Please add your session to SESSION_ID env !!');
+    const sessdata = config.SESSION_ID;
+    const filer = File.fromURL(`https://mega.nz/file/${sessdata}`);
+    filer.download((err, data) => {
+        if (err) {
+            console.error('Error downloading session:', err);
+            return;
+        }
+        fs.writeFile(__dirname + '/auth_info_baileys/creds.json', data, () => {
+            console.log("Checking Session ID ⏳");
+            connectToWA();
+        });
+    });
+} else {
+    connectToWA();
+}
 
-// Express server setup
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 8000;
 
 // Function to generate random delay (in milliseconds)
-function getRandomDelay(min = 10, max = 50) {
+function getRandomDelay(min = 1000, max = 5000) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
@@ -57,6 +72,7 @@ async function connectToWA() {
     connectDB();
     const { readEnv } = require('./lib/database');
     const config = await readEnv();
+    const prefix = config.PREFIX;
 
     console.log("Connecting Bot To WhatsApp 🤖");
     const { state, saveCreds } = await useMultiFileAuthState(__dirname + '/auth_info_baileys/');
@@ -65,52 +81,40 @@ async function connectToWA() {
     const conn = makeWASocket({
         logger: P({ level: 'silent' }),
         printQRInTerminal: false,
-        browser: getRandomBrowser(),
-        syncFullHistory: false,
+        browser: getRandomBrowser(), // Use random browser fingerprint
+        syncFullHistory: false, // Disable full history sync to reduce load
         auth: state,
         version,
         getMessage: async (key) => {
-            return { conversation: 'ignored' };
+            return { conversation: 'ignored' }; // Custom message getter to avoid aggressive polling
         }
     });
-
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 5;
 
     conn.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect } = update;
         if (connection === 'close') {
             const shouldReconnect = lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut;
-            if (shouldReconnect && reconnectAttempts < maxReconnectAttempts) {
-                console.log(`Reconnecting... Attempt ${reconnectAttempts + 1}`);
-                reconnectAttempts++;
-                await sleep(getRandomDelay(5000, 10000));
+            if (shouldReconnect) {
+                console.log('Reconnecting...');
+                await sleep(getRandomDelay(5000, 10000)); // Random delay before reconnect
                 connectToWA();
-            } else {
-                console.log('Max reconnect attempts reached or logged out. Exiting...');
-                process.exit(1);
             }
         } else if (connection === 'open') {
             console.log('Whatsapp Login Successfully ✅');
-            reconnectAttempts = 0; // Reset on successful connection
             start_numrep_process();
-
+            
             const path = require('path');
             let cleanupNewsService = null;
-
+            
             fs.readdirSync("./plugins/").forEach((plugin) => {
                 if (path.extname(plugin).toLowerCase() == ".js") {
-                    try {
-                        const pluginModule = require("./plugins/" + plugin);
-                        if (pluginModule.startNewsService) {
-                            cleanupNewsService = pluginModule.startNewsService(conn);
-                        }
-                    } catch (e) {
-                        console.error(`Error loading plugin ${plugin}:`, e);
+                    const pluginModule = require("./plugins/" + plugin);
+                    if (pluginModule.startNewsService) {
+                        cleanupNewsService = pluginModule.startNewsService(conn);
                     }
                 }
             });
-
+            
             console.log('Plugins installed ✅');
             console.log('Bot connected ✅');
             await conn.sendMessage(`${ownerNumber}@s.whatsapp.net`, { text: "> Connected to whatsapp" });
@@ -129,14 +133,18 @@ async function connectToWA() {
         return await getstorednumrep(quotedid, jid, num, conn, mek);
     };
 
+    //------- *STATUS AUTO REACT & AUTO FEATURES WITH RATE LIMITING* ----------
     conn.ev.on('messages.upsert', async (mek) => {
         mek = mek.messages[0];
         if (mek.key && mek.key.remoteJid === 'status@broadcast' && config.AUTO_READ_STATUS === "true") {
             await conn.readMessages([mek.key]);
-            await sleep(getRandomDelay());
+            await sleep(getRandomDelay()); // Random delay before reacting
             const emoji = '💜';
             await conn.sendMessage(mek.key.remoteJid, {
-                react: { text: emoji, key: mek.key }
+                react: {
+                    text: emoji,
+                    key: mek.key,
+                } 
             }, { statusJidList: [mek.key.participant] });
         }
 
@@ -144,19 +152,22 @@ async function connectToWA() {
         const type = getContentType(mek.message);
         const content = JSON.stringify(mek.message);
         const from = mek.key.remoteJid;
-
+        
+        // Auto Typing with random delay
         if (config.ALWAYS_TYPING === "true") {
             await conn.sendPresenceUpdate('composing', from);
-            await sleep(getRandomDelay(500, 2000));
+            await sleep(getRandomDelay(500, 2000)); // Random delay to simulate human typing
         }
 
+        // Auto Voice Recording with random delay
         if (config.ALWAYS_RECORDING === "true") {
             await conn.sendPresenceUpdate('recording', from);
-            await sleep(getRandomDelay(1000, 3000));
+            await sleep(getRandomDelay(1000, 3000)); // Random delay to simulate recording
         }
 
+        // Auto Like Reaction with rate limiting
         const likeReactions = ['❤️', '👍', '😍'];
-        if (Math.random() < 0.5) {
+        if (Math.random() < 0.5) { // 50% chance to react, reducing spam
             await sleep(getRandomDelay());
             const randomLike = likeReactions[Math.floor(Math.random() * likeReactions.length)];
             await m.react(randomLike);
@@ -203,7 +214,7 @@ async function connectToWA() {
         const groupAdmins = isGroup ? await getGroupAdmins(participants) : '';
         const isBotAdmins = isGroup ? groupAdmins.includes(botNumber2) : false;
         const isAdmins = isGroup ? groupAdmins.includes(sender) : false;
-
+       
         const isAnti = (teks) => {
             let getdata = teks;
             for (let i = 0; i < getdata.length; i++) {
@@ -212,7 +223,7 @@ async function connectToWA() {
             return false;
         };
         const reply = async (teks) => {
-            await sleep(getRandomDelay());
+            await sleep(getRandomDelay()); // Delay before replying
             return await conn.sendMessage(from, { text: teks }, { quoted: mek });
         };
 
@@ -228,7 +239,9 @@ async function connectToWA() {
                 protocolMessage: {
                     key: mek.key,
                     type: 14,
-                    editedMessage: { conversation: newmg }
+                    editedMessage: {
+                        conversation: newmg
+                    }
                 }
             }, {});
         };
@@ -244,17 +257,17 @@ async function connectToWA() {
 
         conn.sendFileUrl = async (jid, url, caption, quoted, options = {}) => {
             try {
-                await sleep(getRandomDelay());
+                await sleep(getRandomDelay()); // Delay before sending file
                 const response = await axios({
                     method: 'get',
                     url: url,
                     responseType: 'stream',
-                    maxContentLength: 100 * 1024 * 1024,
+                    maxContentLength: 100 * 1024 * 1024, // Limit to 100MB
                     maxBodyLength: 100 * 1024 * 1024
                 });
 
                 let mime = response.headers['content-type'];
-                if (!mime) mime = 'application/octet-stream';
+                if (!mime) mime = 'application/octet-stream'; // Fallback MIME type
 
                 if (mime.split("/")[1] === "gif") {
                     return conn.sendMessage(jid, { video: response.data, caption: caption, gifPlayback: true, ...options }, { quoted: quoted, ...options });
@@ -284,24 +297,45 @@ async function connectToWA() {
             await sleep(getRandomDelay());
             let header;
             if (opts?.video) {
-                var video = await prepareWAMessageMedia({ video: { url: opts && opts.video ? opts.video : '' } }, { upload: conn.waUploadToServer });
-                header = { title: opts && opts.header ? opts.header : '', hasMediaAttachment: true, videoMessage: video.videoMessage };
+                var video = await prepareWAMessageMedia({
+                    video: { url: opts && opts.video ? opts.video : '' }
+                }, { upload: conn.waUploadToServer });
+                header = {
+                    title: opts && opts.header ? opts.header : '',
+                    hasMediaAttachment: true,
+                    videoMessage: video.videoMessage,
+                };
             } else if (opts?.image) {
-                var image = await prepareWAMessageMedia({ image: { url: opts && opts.image ? opts.image : '' } }, { upload: conn.waUploadToServer });
-                header = { title: opts && opts.header ? opts.header : '', hasMediaAttachment: true, imageMessage: image.imageMessage };
+                var image = await prepareWAMessageMedia({
+                    image: { url: opts && opts.image ? opts.image : '' }
+                }, { upload: conn.waUploadToServer });
+                header = {
+                    title: opts && opts.header ? opts.header : '',
+                    hasMediaAttachment: true,
+                    imageMessage: image.imageMessage,
+                };
             } else {
-                header = { title: opts && opts.header ? opts.header : '', hasMediaAttachment: false };
+                header = {
+                    title: opts && opts.header ? opts.header : '',
+                    hasMediaAttachment: false,
+                };
             }
 
             let message = generateWAMessageFromContent(jid, {
                 viewOnceMessage: {
                     message: {
-                        messageContextInfo: { deviceListMetadata: {}, deviceListMetadataVersion: 2 },
+                        messageContextInfo: {
+                            deviceListMetadata: {},
+                            deviceListMetadataVersion: 2,
+                        },
                         interactiveMessage: {
                             body: { text: opts && opts.body ? opts.body : '' },
                             footer: { text: opts && opts.footer ? opts.footer : '' },
                             header: header,
-                            nativeFlowMessage: { buttons: buttons, messageParamsJson: '' }
+                            nativeFlowMessage: {
+                                buttons: buttons,
+                                messageParamsJson: ''
+                            }
                         }
                     }
                 }
@@ -348,20 +382,27 @@ async function connectToWA() {
         events.commands.map(async (command) => {
             if (body && command.on === "body") {
                 await sleep(getRandomDelay());
-                command.function(conn, mek, m, { from, quoted, body, isCmd, prefix, command, args, q, isGroup, sender, msr, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply });
+                command.function(conn, mek, m, { from, l, quoted, body, isCmd, prefix, command, args, q, isGroup, sender, msr, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply });
             } else if (mek.q && command.on === "text") {
                 await sleep(getRandomDelay());
-                command.function(conn, mek, m, { from, quoted, body, isCmd, prefix, command, args, q, isGroup, sender, msr, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply });
-            } else if ((command.on === "image" || command.on === "photo") && mek.type === "imageMessage") {
+                command.function(conn, mek, m, { from, l, quoted, body, isCmd, prefix, command, args, q, isGroup, sender, msr, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply });
+            } else if (
+                (command.on === "image" || command.on === "photo") &&
+                mek.type === "imageMessage"
+            ) {
                 await sleep(getRandomDelay());
-                command.function(conn, mek, m, { from, quoted, body, isCmd, prefix, command, args, q, isGroup, sender, msr, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply });
-            } else if (command.on === "sticker" && mek.type === "stickerMessage") {
+                command.function(conn, mek, m, { from, l, quoted, body, isCmd, prefix, command, args, q, isGroup, sender, msr, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply });
+            } else if (
+                command.on === "sticker" &&
+                mek.type === "stickerMessage"
+            ) {
                 await sleep(getRandomDelay());
-                command.function(conn, mek, m, { from, quoted, body, isCmd, prefix, command, args, q, isGroup, sender, msr, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply });
+                command.function(conn, mek, m, { from, l, quoted, body, isCmd, prefix, command, args, q, isGroup, sender, msr, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply });
             }
         });
     });
 
+    //--------------------| Bhashi Anti Del |--------------------//
     conn.ev.on('messages.delete', async (message) => {
         if (config.ANTI_DELETE === "true" && message.remoteJid.endsWith('@g.us')) {
             try {
@@ -403,35 +444,7 @@ async function connectToWA() {
     });
 }
 
-// Session authentication with error handling
-if (!fs.existsSync(__dirname + '/auth_info_baileys/creds.json')) {
-    if (!config.SESSION_ID) {
-        console.log('Please add your session to SESSION_ID env !!');
-        process.exit(1);
-    }
-    const sessdata = config.SESSION_ID;
-    const filer = File.fromURL(`https://mega.nz/file/${sessdata}`);
-    try {
-        filer.download((err, data) => {
-            if (err) {
-                console.error('Error downloading session:', err);
-                process.exit(1);
-            }
-            fs.writeFile(__dirname + '/auth_info_baileys/creds.json', data, () => {
-                console.log("Checking Session ID ⏳");
-                connectToWA();
-            });
-        });
-    } catch (e) {
-        console.error('Session download failed:', e);
-        process.exit(1);
-    }
-} else {
-    connectToWA();
-}
-
 app.get("/", (req, res) => {
     res.send("WOLF IS ON YOUR WAY");
 });
-
 app.listen(port, () => console.log(`Server listening on port http://localhost:${port}`));
