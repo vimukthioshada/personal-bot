@@ -19,6 +19,7 @@
     "@whiskeysockets/baileys": "6.6.0",
     "api-dylux": "1.8.5",
     "@dark-yasiya/nexara": "1.0.0",
+    "@distube/ytdl-core": "4.16.4",
     "async-g-i-s": "^1.4.0",
     "mongoose": "8.5.3",
     "darksadasyt-anime": "1.0.0",
