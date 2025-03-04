@@ -17,6 +17,7 @@
     "@sl-code-lords/esana-news": "latest",
     "@sl-code-lords/si-subdl": "^1.1.1",
     "@whiskeysockets/baileys": "6.6.0",
+    "seedr": "1.1.2",
     "api-dylux": "1.8.5",
     "fb-downloader-scrapper" : "3.0.1",
     "@dark-yasiya/nexara": "1.0.0",
