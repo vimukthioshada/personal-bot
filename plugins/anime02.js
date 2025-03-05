@@ -110,7 +110,7 @@ class AnimeScraper {
             }
 
             if (link) {
-                const fullLink = `${this.baseUrl}${link}`;
+                const fullLink = `${link}`;
                 return await this.scrapeDownloadPage(fullLink);
             }
             return null;
