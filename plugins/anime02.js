@@ -24,7 +24,7 @@ const API_URL = 'https://19f9de5d-7d0c-4ef4-bdfc-26c16d03b8c0-00-37qou1nu4a2rs.s
 //===============================================================================
 
 cmd({
-    pattern: "smv",
+    pattern: "1",
     alias: ["mv3", "sin"],
     react: "🎥",
     desc: "Search for movies or TV shows on slanimeclub.co",
@@ -65,7 +65,7 @@ async (conn, mek, m, { from, l, prefix, quoted, body, isCmd, command, args, q, i
 });
 
 cmd({
-    pattern: "simvjid",
+    pattern: "2",
     react: "📽️",
     dontAddCommandList: true,
     filename: __filename
@@ -104,7 +104,7 @@ async (conn, mek, m, { from, prefix, l, quoted, body, isCmd, command, args, q, i
 });
 
 cmd({
-    pattern: "simvgo",
+    pattern: "3",
     react: "📽️",
     dontAddCommandList: true,
     filename: __filename
@@ -138,7 +138,7 @@ async (conn, mek, m, { from, prefix, l, quoted, body, isCmd, command, args, q, i
 });
 
 cmd({
-    pattern: "sitvjid",
+    pattern: "4",
     react: "📺",
     dontAddCommandList: true,
     filename: __filename
@@ -177,7 +177,7 @@ async (conn, mek, m, { from, prefix, l, quoted, body, isCmd, command, args, q, i
 });
 
 cmd({
-    pattern: "sitvgo",
+    pattern: "5",
     alias: ["tv", "sintv"],
     react: "📺",
     dontAddCommandList: true,
@@ -217,7 +217,7 @@ async (conn, mek, m, { from, prefix, l, quoted, body, isCmd, command, args, q, i
 });
 
 cmd({
-    pattern: "siepgo",
+    pattern: "6",
     react: "📺",
     dontAddCommandList: true,
     filename: __filename
@@ -251,7 +251,7 @@ async (conn, mek, m, { from, prefix, l, quoted, body, isCmd, command, args, q, i
 });
 
 cmd({
-    pattern: "simvdet",
+    pattern: "7",
     react: "📽️",
     dontAddCommandList: true,
     filename: __filename
@@ -294,7 +294,7 @@ async (conn, mek, m, { from, quoted, body, prefix, isCmd, command, args, q, isGr
 });
 
 cmd({
-    pattern: "sitvdet",
+    pattern: "8",
     react: "📺",
     dontAddCommandList: true,
     filename: __filename
@@ -336,7 +336,7 @@ async (conn, mek, m, { from, quoted, body, prefix, isCmd, command, args, q, isGr
 });
 
 cmd({
-    pattern: "siepdet",
+    pattern: "9",
     react: "📺",
     dontAddCommandList: true,
     filename: __filename
@@ -377,7 +377,7 @@ async (conn, mek, m, { from, l, quoted, body, prefix, isCmd, command, args, q, i
 });
 
 cmd({
-    pattern: "sinedirectdl2",
+    pattern: "10",
     alias: ["sinedirectdl"],
     react: "⬆",
     dontAddCommandList: true,
@@ -453,7 +453,7 @@ async (conn, mek, m, { from, prefix, l, quoted, body, isCmd, command, args, q, i
 });
 
 cmd({
-    pattern: "sinhimages",
+    pattern: "11",
     react: "📽",
     dontAddCommandList: true,
     filename: __filename
