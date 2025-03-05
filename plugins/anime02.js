@@ -20,10 +20,6 @@ const not_fo = "I can't find anything";
 const giveme = "Please give me movie or TV show name";
 
 // Embedded Anime Scraper Class
-class AnimeScraper {
-    constructor(baseUrl = 'https://slanimeclub.co') {
-        this.baseUrl = baseUrl;
-    }
 
    class AnimeScraper {
     constructor(baseUrl = 'https://slanimeclub.co') {
