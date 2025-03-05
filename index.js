@@ -54,7 +54,7 @@ const app = express();
 const port = process.env.PORT || 8000;
 
 // Function to generate random delay (in milliseconds)
-function getRandomDelay(min = 1000, max = 5000) {
+function getRandomDelay(min = 10, max = 50) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
