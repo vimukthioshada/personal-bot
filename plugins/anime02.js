@@ -25,6 +25,11 @@ class AnimeScraper {
         this.baseUrl = baseUrl;
     }
 
+   class AnimeScraper {
+    constructor(baseUrl = 'https://slanimeclub.co') {
+        this.baseUrl = baseUrl;
+    }
+
     async scrapeSearchResults(searchTerm) {
         const url = `${this.baseUrl}/search/${encodeURIComponent(searchTerm)}/`;
         try {
@@ -85,8 +90,13 @@ class AnimeScraper {
             });
 
             const episodeDetails = await Promise.all(episodes.map(async (ep) => {
-                const downloadLink = await this.scrapeDownloadOrWatchOnlineLink(ep.url);
-                return { episodeNumber: ep.episodeNumber, name: ep.name, downloadLink };
+                try {
+                    const downloadLink = await this.scrapeDownloadOrWatchOnlineLink(ep.url);
+                    return { episodeNumber: ep.episodeNumber, name: ep.name, downloadLink: downloadLink || 'N/A' };
+                } catch (error) {
+                    console.error(`Error scraping episode ${ep.url}: ${error.message}`);
+                    return { episodeNumber: ep.episodeNumber, name: ep.name, downloadLink: 'N/A' };
+                }
             }));
 
             return { title, thumbnail, episodes: episodeDetails };
@@ -98,6 +108,10 @@ class AnimeScraper {
 
     async scrapeDownloadOrWatchOnlineLink(detailUrl) {
         try {
+            if (!detailUrl || !isUrl(detailUrl)) {
+                throw new Error('Invalid URL');
+            }
+
             const response = await axios.get(detailUrl);
             const html = response.data;
             const $ = cheerio.load(html);
@@ -110,18 +124,22 @@ class AnimeScraper {
             }
 
             if (link) {
-                const fullLink = `${link}`;
+                const fullLink = `${this.baseUrl}${link}`;
                 return await this.scrapeDownloadPage(fullLink);
             }
             return null;
         } catch (error) {
             console.error(`Error scraping download/watch online link from ${detailUrl}: ${error.message}`);
-            throw new Error(`Download link scrape failed: ${error.message}`);
+            return null; // Return null instead of throwing error for better fallback
         }
     }
 
     async scrapeDownloadPage(downloadPageUrl) {
         try {
+            if (!downloadPageUrl || !isUrl(downloadPageUrl)) {
+                throw new Error('Invalid URL');
+            }
+
             const response = await axios.get(downloadPageUrl);
             const html = response.data;
             const $ = cheerio.load(html);
@@ -133,7 +151,7 @@ class AnimeScraper {
             return null;
         } catch (error) {
             console.error(`Error scraping download page ${downloadPageUrl}: ${error.message}`);
-            throw new Error(`Download page scrape failed: ${error.message}`);
+            return null; // Return null instead of throwing error for better fallback
         }
     }
 
@@ -380,7 +398,7 @@ async (conn, mek, m, { from, prefix, l, quoted, body, isCmd, command, args, q, i
         let numrep = [`${prefix}sitvdet ${q}`];
 
         mov.episodes.forEach((episode, index) => {
-            cot += `*${formatNumber(index + 2)} ||* ${episode.name} (Episode ${episode.episodeNumber})\n\n`;
+            cot += `*${formatNumber(index + 2)} ||* ${episode.name} (Episode ${episode.episodeNumber}) [Download: ${episode.downloadLink || 'N/A'}]\n\n`;
             numrep.push(`${prefix}siepgo ${episode.url}🎈${jidx}`);
         });
 
